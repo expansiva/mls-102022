@@ -117,7 +117,8 @@ const _afterPrompt = async (context: mls.msg.ExecutionContext): Promise<void> =>
 
     notifyTaskChange(context);
     await executeNextStep(context);
-
+    
+    debugger;
     if (!result.isUpdate) {
         await createFile(result);
         await createOrUpdateProjectFile(result);
