@@ -16,6 +16,11 @@
       "name": "areaoftest",
       "path": "areaoftest",
       "auth": "admin"
+    },
+    {
+      "name": "writingtools",
+      "path": "writingtools",
+      "auth": "admin"
     }
   ]
 }
