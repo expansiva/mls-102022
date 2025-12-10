@@ -29,8 +29,8 @@ A. Definition Interface (Success Output)
 ```ts
 export interface BaseDefs {
     meta: {
-        projectId: number; // current project {{projectId}}
-        folder: string; // concise English translation
+        projectId: number; // current project {{projectId}}   
+        folder: string; // concise English translation. MUST be lowercase and joined (no hyphens). e.g., 'productmanagement'
         shortName: string; // camelCase only (e.g., pageAdmin), must not contain dashes, spaces, or special characters. Always in English.
         type: 'page' | 'widget' | 'plugin' | 'module' | 'lib' | 'table' | 'organism' | 'service' | 'info'; 
 
@@ -116,7 +116,7 @@ interface Question {
 
   3. BaseDefs Object Generation (In Case of Success):
 
-    - FOLDER PRIORITY RULE: The `meta.folder` field MUST be derived from the broader organizational context (e.g., 'group' or 'module') mentioned by the user (e.g., 'Finance', 'HR', 'Utilities'). This value MUST be lower-cased and in English. If a group is explicitly mentioned, its translated name (e.g., "finance") must be used for `meta.folder` instead of the application name.
+    - FOLDER PRIORITY RULE: The meta.folder field MUST be derived from the broader organizational context (e.g., 'group' or 'module') mentioned by the user (e.g., 'Finance', 'Product Management', 'Utilities'). This value MUST be strictly lowercase, in English, and MUST NOT contain hyphens, spaces, or underscores. Join words together if necessary (e.g., use 'productmanagement', NOT 'product-management'). If a group is explicitly mentioned, its translated/sanitized name must be used for meta.folder.
 
     - MANDATORY TRANSLATION RULE: The fields meta.shortName and meta.folder MUST be filled using a concise English translation, even if the original request is in another language.
 
