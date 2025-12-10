@@ -120,16 +120,15 @@ Whether creating or updating, the code must adhere to these standards:
 
 8. **Localization:** Determine the **Primary User Language** (e.g., from `defs.meta.languages[0]` or by analyzing the user's `prompt`). All static UI text (buttons, labels, headers) generated in `render()` **MUST** be translated to this language.
 
+
 #### Rules for `pageHtml` (Presentation)
 
 1. **Structure:** Must use `&lt;content-tabs-100554&gt;`.
 
-2. **Tabs Content:**
+  * **Tab 1 (Mini App):** Must contain the web component tag: `&lt;{{folder}}--{{shortName}}-{{projectId}} /&gt;`.
 
-   * **Tab 1 (Mini App):** Must contain the web component tag: `&lt;{{folder}}--{{shortName}}-{{projectId}} /&gt;`.
-
-   * **Tab 2 (Sobre/About):** MUST be an enriched information section. You **MUST** generate the HTML below, filling in the placeholders based on the `defs`.
-     * **Localization Rule:** The text inserted into this HTML (Objective, Tips, Title) **MUST** be translated to the **Primary User Language** identified, even if the source data in `defs` is in English.
+  * **Tab 2 (Sobre/About):** MUST be an enriched information section. You **MUST** generate the HTML below, filling in the placeholders based on the `defs`.
+    * **Localization Rule:** The text inserted into this HTML (Objective, Tips, Title) **MUST** be translated to the **Primary User Language** identified, even if the source data in `defs` is in English.
 
    ```html
    &lt;content-tabs-100554 selectedIndex="0"&gt;
