@@ -16,11 +16,6 @@
       "name": "areaoftest",
       "path": "areaoftest",
       "auth": "admin"
-    },
-    {
-      "name": "utils",
-      "path": "utils",
-      "auth": "admin"
     }
   ]
 }
