@@ -6,13 +6,8 @@ import '/_100554_/l2/widgetQuestionsForClarification';
 import {
     getNextInProgressStepByAgentName,
     notifyTaskChange,
-    notifyThreadChange,
     updateStepStatus,
     getNextPendentStep,
-    appendLongTermMemory,
-    getNextFlexiblePendingStep,
-    getNextResultStep,
-    getNextClarificationStep,
     getNextStepIdAvaliable,
     updateTaskTitle,
     getNextPendingStepByAgentName
@@ -27,7 +22,6 @@ import {
     ClarificationValue
 } from "/_100554_/l2/aiAgentOrchestration";
 
-// IMPORTANTE ********
 const agentName = "agentNewMiniApp";
 const project = 102022;
 
@@ -63,7 +57,6 @@ export function createAgent(): IAgent {
 }
 
 const _beforePrompt = async (context: mls.msg.ExecutionContext): Promise<void> => {
-    console.info(agentName, 'initializing _beforePrompt with context', context, context.message.content);
     const taskTitle = "Planning...";
     if (!context || !context.message) throw new Error("Invalid context");
     if (!context.task) {
@@ -82,14 +75,11 @@ const _beforePrompt = async (context: mls.msg.ExecutionContext): Promise<void> =
 }
 
 const _afterPrompt = async (context: mls.msg.ExecutionContext): Promise<void> => {
-    console.info(agentName, 'initializing _afterPrompt with context', context);
     if (!context || !context.message || !context.task) throw new Error("Invalid context");
     const step: mls.msg.AIAgentStep | null = getNextInProgressStepByAgentName(context.task, agentName);
     if (!step) throw new Error(`[${agentName}] afterPrompt: No in progress interaction found.`);
     const payload = step.interaction?.payload || [];
     if (!payload || payload.length > 1) throw new Error('afterPrompt: Invalid payload');
-    const needClarification = payload[0].type === 'clarification';
-    const needUpdateAgent = payload[0].type === 'flexible';
 
     context = await updateStepStatus(context, step.stepId, "completed");
     const stepType = payload[0].type;
@@ -97,23 +87,21 @@ const _afterPrompt = async (context: mls.msg.ExecutionContext): Promise<void> =>
         case 'flexible':
             await nextStep(context);
             if (context.task) context.task = await updateTaskTitle(context.task, "Waiting next agent");
+            notifyTaskChange(context);
             break;
         case 'clarification':
             if (context.task) context.task = await updateTaskTitle(context.task, "Waiting for user");
+            notifyTaskChange(context);
+            await executeNextStep(context);
             break;
-        default: 
+        default:
             if (context.task) context.task = await updateTaskTitle(context.task, "Done");
+            notifyTaskChange(context);
+            await executeNextStep(context);
     }
-    
-    notifyTaskChange(context);  
-    await executeNextStep(context);
-
-    console.info(agentName, 'Finished ', context);
 }
 
 const _beforeClarification = async (context: mls.msg.ExecutionContext, stepId: number, readOnly: boolean): Promise<HTMLDivElement | null> => {
-    console.info(agentName, 'initializing _beforeClarification');
-    
     return startClarification(context, stepId, readOnly);
 }
 
@@ -138,10 +126,7 @@ const _afterClarification = async (context: mls.msg.ExecutionContext, stepId: nu
 
 export interface PayloadUpdate {
     defs: mls.l4.BaseDefs;
-    pageTs?: string;
-    pageHtml?: string;
-    pageLess?: string;
-    prompt?: string;
+    isUpdate: boolean;
 }
 
 async function nextStep(context: mls.msg.ExecutionContext) {
@@ -153,7 +138,8 @@ async function nextStep(context: mls.msg.ExecutionContext) {
     if (!step.result || typeof step.result === 'string') return;
 
     const info: PayloadUpdate = {
-        defs: step.result
+        defs: step.result,
+        isUpdate: false
     }
 
     const newStep: mls.msg.AIPayload = {
