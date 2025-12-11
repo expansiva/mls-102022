@@ -23,7 +23,7 @@ import {
 } from "/_100554_/l2/aiAgentOrchestration";
 
 const agentName = "agentNewMiniApp";
-const project = 102022;
+const project = 102022; 
 
 export function createAgent(): IAgent {
     return {
@@ -42,16 +42,6 @@ export function createAgent(): IAgent {
         },
         async afterClarification(context: mls.msg.ExecutionContext, stepId: number, clarification: ClarificationValue): Promise<void> {
             return _afterClarification(context, stepId, clarification);
-        },
-        async installBot(context: mls.msg.ExecutionContext): Promise<boolean> {
-            throw new Error('Not implement');
-        },
-        async beforeBot(context: mls.msg.ExecutionContext, msg: string, toolsBeforeSendMessage: mls.bots.ToolsBeforeSendMessage[]): Promise<Record<string, any>> {
-            throw new Error('Not implement');
-        },
-        async afterBot(context: mls.msg.ExecutionContext, output: mls.msg.BotOutput): Promise<string> {
-            throw new Error('Not implement');
-
         }
     };
 }
@@ -60,7 +50,7 @@ const _beforePrompt = async (context: mls.msg.ExecutionContext): Promise<void> =
     const taskTitle = "Planning...";
     if (!context || !context.message) throw new Error("Invalid context");
     if (!context.task) {
-        let prompt = context.message.content.replace('@@agentNewMiniApp', '').trim();
+        let prompt = removeAgentPrefix(context.message.content.trim(), agentName);
         const inputs: any = await getPrompts(prompt);
         await startNewAiTask(agentName, taskTitle, context.message.content, context.message.threadId, context.message.senderId, inputs, context, _afterPrompt);
         return;
@@ -104,16 +94,30 @@ const _afterPrompt = async (context: mls.msg.ExecutionContext): Promise<void> =>
 const _beforeClarification = async (context: mls.msg.ExecutionContext, stepId: number, readOnly: boolean): Promise<HTMLDivElement | null> => {
     return startClarification(context, stepId, readOnly);
 }
+function getInitialUserPrompt(context: mls.msg.ExecutionContext): string {
+    const nextSteps = context.task?.iaCompressed?.nextSteps;
+    if (!nextSteps || nextSteps.length === 0) return '';
+    const inputs = nextSteps[0].interaction?.input;
+    if (!inputs || inputs.length === 0) return '';
 
+    const humanInput = inputs.filter((prompt) => prompt.type === 'human');
+
+    if (!humanInput) return '';
+    return humanInput[0].content; 
+
+}
 const _afterClarification = async (context: mls.msg.ExecutionContext, stepId: number, clarification: ClarificationValue): Promise<void> => {
     // only execute after button 'continue'
     if (!context || !context.message || !context.task) throw new Error(`[${agentName}](afterClarification) Invalid context`);
-    if (!clarification) throw new Error(`[${agentName}](afterClarification) Invalid json after clarification`);
+    if (!clarification) throw new Error(`[${agentName}](afterClarification) Invalid json after clarification`);    
+    const humanPrompt = getInitialUserPrompt(context);
 
+    const nextPrompt = { prompt: removeAgentPrefix(humanPrompt, agentName), clarification: clarification.questions };
+    
     const newStep: mls.msg.AIPayload = {
         type: 'agent',
         agentName: `${agentName}`,
-        prompt: JSON.stringify(clarification.questions),
+        prompt: JSON.stringify(nextPrompt),
         status: 'pending',
         stepId: stepId + 1, // getNextStepIdAvaliable(context.task),
         interaction: null,
@@ -122,11 +126,6 @@ const _afterClarification = async (context: mls.msg.ExecutionContext, stepId: nu
     }
     // complete this step (payload) and push another step
     await addNewStep(context, stepId, [newStep], "Waiting ...");
-}
-
-export interface PayloadUpdate {
-    defs: mls.l4.BaseDefs;
-    isUpdate: boolean;
 }
 
 async function nextStep(context: mls.msg.ExecutionContext) {
@@ -165,4 +164,27 @@ async function getPrompts(userPrompt: string): Promise<mls.msg.IAMessageInputTyp
 
     const prompts = await getPromptByHtml({ project, shortName: agentName, folder: '', data: dataForReplace })
     return prompts;
+}
+
+function removeAgentPrefix(rawPrompt: string, _agentName: string): string {
+    /**
+     * receive '@@_102022_/l2/agentNewMiniApp ola mundo' or @@agentNewMiniApp ola mundo
+     * 
+     * return 'ola mundo'
+     */
+    if (!rawPrompt || rawPrompt === '') return '';
+    if (rawPrompt.indexOf('@@') === - 1) return rawPrompt;
+    let finalPrompt = rawPrompt; // init with dyrt prompt
+    let textSearch = '/' + _agentName
+    if (rawPrompt.startsWith(`@@${_agentName}`)) textSearch = `@@${_agentName}`;
+    const indexText = rawPrompt.indexOf(textSearch);
+    if (indexText > -1) {
+        finalPrompt = rawPrompt.substring(indexText + textSearch.length).trim();
+    }    
+    return finalPrompt;
+}
+
+export interface PayloadUpdate {
+    defs: mls.l4.BaseDefs;
+    isUpdate: boolean;
 }
