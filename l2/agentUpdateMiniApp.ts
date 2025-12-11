@@ -41,16 +41,6 @@ export function createAgent(): IAgent {
         async afterPrompt(context: mls.msg.ExecutionContext): Promise<void> {
             return _afterPrompt(context);
         },
-        async installBot(context: mls.msg.ExecutionContext): Promise<boolean> {
-            throw new Error('Not implement');
-        },
-        async beforeBot(context: mls.msg.ExecutionContext, msg: string, toolsBeforeSendMessage: mls.bots.ToolsBeforeSendMessage[]): Promise<Record<string, any>> {
-            throw new Error('Not implement');
-        },
-        async afterBot(context: mls.msg.ExecutionContext, output: mls.msg.BotOutput): Promise<string> {
-            throw new Error('Not implement');
-
-        }
     };
 }
 
@@ -89,10 +79,9 @@ const _beforePrompt = async (context: mls.msg.ExecutionContext): Promise<void> =
     
     const step: mls.msg.AIAgentStep | null = getNextPendingStepByAgentName(context.task, agentName);
     if (!step) throw new Error(`[${agentName}](beforePrompt) No pending step found for this agent.`);
-
     if (!step.prompt) throw new Error(`[${agentName}](beforePrompt) No prompt found in step for this agent.`);
-    const inputs = await getPrompts(step.prompt);
 
+    const inputs = await getPrompts(step.prompt);
     await startNewInteractionInAiTask(agentName, taskTitle, inputs, context, _afterPrompt, step.stepId);
 }
 
@@ -117,8 +106,7 @@ const _afterPrompt = async (context: mls.msg.ExecutionContext): Promise<void> =>
 
     notifyTaskChange(context);
     await executeNextStep(context);
-    
-    debugger;
+        
     if (!result.isUpdate) {
         await createFile(result);
         await createOrUpdateProjectFile(result);
@@ -134,10 +122,9 @@ async function createFile(contents: PayloadOk) {
     const { projectId, folder, shortName, group } = contents.defs.meta;
 
     const info = { project: projectId, shortName, folder };
-    const pageTagName = convertFileNameToTag(info);
     const sourceTS = contents.pageTs;
     const sourceHTML = contents.pageHtml;
-    const sourceLess = generateLessPage(info, group!, pageTagName, '');;
+    const sourceLess = generateLessPage(info, group!, '');;
     const sourceDefs = generateDefsPage(info, group!, contents.defs);
 
     await createNewFile({
@@ -170,38 +157,38 @@ async function createOrUpdateProjectFile(contents: PayloadOk) {
 
 async function createOrUpdateModuleFile(contents: PayloadOk) { 
     
-    const { projectId, folder } = contents.defs.meta;
+    const { projectId, folder, shortName } = contents.defs.meta;
     const moduleName: string = folder
-    const shortName = 'module'
+    const moduleFN = 'module'
 
-    const key = mls.stor.getKeyToFiles(projectId, 2, shortName, folder, '.ts');
+    const key = mls.stor.getKeyToFiles(projectId, 2, moduleFN, folder, '.ts');
     const storFile = mls.stor.files[key];
-    const initTag = getInitialTag(shortName, projectId, folder, moduleName);
+    const initTag = getInitialTag(moduleFN, projectId, folder, moduleName);
     
     if (!storFile) { 
         const fmConfig = getFirstModuleConfig(folder, shortName);
         const enhancement = '_blank'
-        const content = formatModuleContent(initTag, fmConfig);
-        await createNewFile({ project: projectId, shortName, folder, position: 'right', enhancement, sourceTS: content.trim(), sourceHTML: '', sourceLess: '', sourceDefs: '', openPreview: false });
+        const content = formatModuleContent('', fmConfig); // createNewFile includes the initial tag
+        await createNewFile({ project: projectId, shortName: moduleFN, folder, position: 'right', enhancement, sourceTS: content.trim(), sourceHTML: '', sourceLess: '', sourceDefs: '', openPreview: false });
         return { ok: true };
     }
 
-    const modelTS = getModel({ project: projectId, shortName, folder });
-    if (!modelTS) return { ok: false, message: 'No models found' }
-    if (!modelTS.ts) return { ok: false, message: 'No models.ts found' }
-    const model = modelTS.ts.model;
-
-    const moduleConfig: ModuleConfig = await collabImport({
+    const moduleFile = await collabImport({
         folder: folder,
         project: projectId,
-        shortName,
+        shortName: moduleFN,
         extension: ".ts",
     });
 
+    if (!moduleFile) {
+        return { ok: false, message: "Module file not found" };
+    }
+
+    const moduleConfig: ModuleConfig = moduleFile.moduleConfig;
     if (!moduleConfig) {
         return { ok: false, message: "Config not found" };
     }
-
+    
     const newMenuItem = getNewMenuItem(shortName);
     if (!moduleConfig.menu) {
         moduleConfig.menu = [newMenuItem];
@@ -212,17 +199,56 @@ async function createOrUpdateModuleFile(contents: PayloadOk) {
     }
 
     const content = formatModuleContent(initTag, moduleConfig); 
-    
+
+    const modelTS = getModel({ project: projectId, shortName: moduleFN, folder });
+    if (!modelTS) return { ok: false, message: 'No models found' }
+    if (!modelTS.ts) return { ok: false, message: 'No models.ts found' }
+    const model = modelTS.ts.model;
+
     model.setValue(content.trim());
     return { ok: true };
 }
+
+async function updateFile(contents: PayloadOk) {    
+    let defs: mls.l4.BaseDefs = contents.defs;
+
+    if (typeof defs === 'string') defs = JSON.parse(extracJsonFromDefs(defs));            
+
+    const { projectId, folder, shortName, group } = defs.meta;
+
+    const serviceSource: ServiceSource100554 = getState(`serviceSource.left.service`);
+    if (!serviceSource) throw new Error('Not found service source instance');
+
+    const models = getModel({ folder: folder || '', project: projectId, shortName });
+    if (!models) throw new Error(`[${agentName}] updateFile: Not found models`);
+
+    const contentHTML = contents.pageHtml;
+    const contentTS = contents.pageTs;
+    const contentLess = contents.pageLess;
+
+    if (models.defs) {
+        const contentDefs = generateDefsPage({ shortName, project, folder }, group || folder, defs);
+        serviceSource.setValueInModeKeepingUndo(models.defs.model, contentDefs, false);
+    }
+
+    if (contentHTML && models.html) {
+        serviceSource.setValueInModeKeepingUndo(models.html.model, contentHTML, false);
+    }
+
+    if (contentTS && models.ts) {
+        serviceSource.setValueInModeKeepingUndo(models.ts.model, contentTS, false);
+        const ok = await mls.l2.typescript.compileAndPostProcess(models.ts, true, false);
+    }
+    //if (contentLess && models.style) {} 
+}
+
 
 function getInitialTag(shortName: string, projectId: number, folder: string, groupName: string): string {
     /* 
     ex. initial file tag
     <mls shortName="module" project="102022" enhancement="_blank" folder="areaoftest" groupName="areaoftest" />
     */
-    const textTag = `///<mls shortName="${shortName}" project="${projectId}" enhancement="_blank" folder="${folder}" groupName="${groupName}" />`;
+    const textTag = `/// <mls shortName="${shortName}" project="${projectId}" enhancement="_blank" folder="${folder}" groupName="${groupName}" />`;
     return textTag;
 }
 
@@ -255,79 +281,9 @@ function formatPageTitle(key: string): string {
 
 function formatModuleContent(initialTag: string, moduleConfig: ModuleConfig): string {
     return  `${initialTag}
-    
-    export const moduleConfig = ${JSON.stringify(moduleConfig)}`  
+    export const moduleConfig = ${JSON.stringify(moduleConfig, null, 2)}`  
 }
 
-async function updateFile(contents: PayloadOk) {    
-    let defs: mls.l4.BaseDefs | string = contents.defs;
-
-    if (typeof defs === 'string') {
-        defs = extracJsonFromDefs(defs);        
-        contents.defs = JSON.parse(defs);        
-    }    
-    const { projectId, folder, shortName, group } = contents.defs.meta;
-
-    const serviceSource: ServiceSource100554 = getState(`serviceSource.left.service`);
-    if (!serviceSource) throw new Error('Not found service source instance');
-
-    const models = getModel({ folder: folder || '', project: projectId, shortName });
-    if (!models) throw new Error(`[${agentName}] updateFile: Not found models`);
-
-    const contentHTML = contents.pageHtml;
-    const contentTS = contents.pageTs;
-    const contentDefs = contents.defs;
-    const contentLess = contents.pageLess;
-
-    if (contentDefs && models.defs) {
-        //serviceSource.setValueInModeKeepingUndo(models.defs.model, contentDefs, false);
-    }
-
-    if (contentHTML && models.html) {
-        serviceSource.setValueInModeKeepingUndo(models.html.model, contentHTML, false);
-    }
-
-    if (contentTS && models.ts) {
-        serviceSource.setValueInModeKeepingUndo(models.ts.model, contentTS, false);
-        const ok = await mls.l2.typescript.compileAndPostProcess(models.ts, true, false);
-    }
-    if (contentLess && models.style) {
-        /*
-        const resultLessComponent2 = await prepareComponentCss(contentLess, +projectMemory, folderMemory || '');
-        serviceSource.setValueInModeKeepingUndo(models.style.model, resultLessComponent2, false);
-        // models.style.model.setValue(resultLessComponent2);
-        const ok = await mls.l2.less.compileStyle(models.style);
-        hasErrorLess = ok === false;
-        */
-    }
-}
-
-/*async function getContentsFromFiles(pageName: string): Promise<{
-    defs: mls.l4.BaseDefs,
-    pageHtml: string,
-    pageLess: string,
-    pageTs: string
-}> {
-
-    const level = 2;
-    const fn = getFileName(pageName, level);
-
-    const pageTs = await mls.stor.files[fn + '.ts'].getContent('') as string;
-    const pageHtml = await mls.stor.files[fn + '.html'].getContent('') as string;
-    let defsStr = await mls.stor.files[fn + '.defs.ts'].getContent('') as string;
-    const pageLess = await mls.stor.files[fn + '.less'].getContent('') as string;
-    defsStr = extracJsonFromDefs(defsStr);
-    if (!defsStr || defsStr === '') throw new Error(`[${agentName}](getContentsFromFiles) Invalid defs.`)
-    const defs = JSON.parse(defsStr);
-
-    return {
-        defs,
-        pageHtml,
-        pageLess,
-        pageTs,
-    }
-
-}*/
 
 function extracJsonFromDefs(str: string): string {
     const start = str.indexOf('{');
@@ -340,39 +296,14 @@ function extracJsonFromDefs(str: string): string {
     }
 }
 
-/*
-function getFileName(page: string, nivel: number): string {
-    // Remove o primeiro "_" inicial, se existir
-    const cleaned = page.startsWith("_") ? page.substring(1) : page;
-
-    // Extrai o número do projeto (até o próximo '_')
-    const firstUnderscoreIndex = cleaned.indexOf("_");
-    if (firstUnderscoreIndex === -1) {
-        throw new Error("Formato inválido. Não foi possível localizar o código do projeto.");
-    }
-
-    const projectCode = cleaned.substring(0, firstUnderscoreIndex);
-    const rest = cleaned.substring(firstUnderscoreIndex + 1);
-
-    // Monta o nome final
-
-    return `${projectCode}_${nivel}_${rest}`;
-}
-*/
-
 function getModel(info: { project: number, shortName: string, folder: string }): mls.editor.IModels | undefined {
     const key = mls.editor.getKeyModel(info.project, info.shortName, info.folder, 2);
     return mls.editor.models[key];
 }
 
 function generateLessPage(
-    info: {
-        shortName: string;
-        project: number;
-        folder: string;
-    },
+    info: { shortName: string; project: number; folder: string; },
     groupName: string,
-    pageTagName: string,
     htmlString: string
 ): string {
 
@@ -391,7 +322,7 @@ function generateLessPage(
     if (!styleData) return "";
 
     if (styleData && !styleData.content) return "";
-    const lessContent = '';//replacePageLessTag(styleData.content as string, info.project, info.shortName, pageTagName);
+    const lessContent = '';
     const lessResult = `/// <mls shortName="${info.shortName}" project="${info.project}" folder="${info.folder}" groupName="${groupName}" enhancement="${enhancement}" />\n\n ${lessContent}`;
     return lessResult;
 
