@@ -18,8 +18,18 @@
       "auth": "admin"
     },
     {
-      "name": "writingtools",
-      "path": "writingtools",
+      "name": "generalutilities",
+      "path": "generalutilities",
+      "auth": "admin"
+    },
+    {
+      "name": "reports",
+      "path": "reports",
+      "auth": "admin"
+    },
+    {
+      "name": "finance",
+      "path": "finance",
       "auth": "admin"
     }
   ]
