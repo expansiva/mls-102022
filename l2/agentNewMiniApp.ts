@@ -30,7 +30,7 @@ export function createAgent(): IAgent {
         agentName,
         avatar_url: svg_agent,
         agentDescription: "Agent NewMiniApp, for decide instructions",
-        visibility: "private",
+        visibility: "public",
         async beforePrompt(context: mls.msg.ExecutionContext): Promise<void> {
             return _beforePrompt(context);
         },
@@ -168,7 +168,9 @@ async function getPrompts(userPrompt: string): Promise<mls.msg.IAMessageInputTyp
 
 function removeAgentPrefix(rawPrompt: string, _agentName: string): string {
     /**
-     * receive '@@_102022_/l2/agentNewMiniApp ola mundo' or @@agentNewMiniApp ola mundo
+     * receive '@@_102022_/l2/agentNewMiniApp ola mundo' 
+     * or @@agentNewMiniApp ola mundo 
+     * or @@NewMiniApp ola mundo
      * 
      * return 'ola mundo'
      */
@@ -176,7 +178,11 @@ function removeAgentPrefix(rawPrompt: string, _agentName: string): string {
     if (rawPrompt.indexOf('@@') === - 1) return rawPrompt;
     let finalPrompt = rawPrompt; // init with dyrt prompt
     let textSearch = '/' + _agentName
-    if (rawPrompt.startsWith(`@@${_agentName}`)) textSearch = `@@${_agentName}`;
+
+    let nameWithoutAgent = _agentName.replace('agent', '');
+    if (rawPrompt.startsWith('@@' + nameWithoutAgent)) textSearch = '@@' + nameWithoutAgent;
+    else if (rawPrompt.startsWith(`@@${_agentName}`)) textSearch = `@@${_agentName}`;
+
     const indexText = rawPrompt.indexOf(textSearch);
     if (indexText > -1) {
         finalPrompt = rawPrompt.substring(indexText + textSearch.length).trim();

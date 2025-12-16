@@ -13,11 +13,6 @@
   },
   "modules": [
     {
-      "name": "areaoftest",
-      "path": "areaoftest",
-      "auth": "admin"
-    },
-    {
       "name": "generalutilities",
       "path": "generalutilities",
       "auth": "admin"
@@ -30,6 +25,11 @@
     {
       "name": "finance",
       "path": "finance",
+      "auth": "admin"
+    },
+    {
+      "name": "ecommerce",
+      "path": "ecommerce",
       "auth": "admin"
     }
   ]

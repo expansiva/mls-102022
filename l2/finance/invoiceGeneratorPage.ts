@@ -1,8 +1,8 @@
-/// <mls shortName="invoiceGeneratorPage" project="102022" enhancement="_blank" groupName="finance" />
-import { CollabPageElement } from '/_100554_/l2/collabPageElement';
+/// <mls shortName="invoiceGeneratorPage" project="102022" folder="finance" enhancement="_100554_enhancementLit" groupName="finance" />
+import { CollabPageElement } from '/_100554_/l2/collabPageElement.js';
 import { customElement } from 'lit/decorators.js';
 import { html } from 'lit';
-import { initState, setState, getState } from '/_100554_/l2/collabState';
+import { initState, setState, getState } from '/_100554_/l2/collabState.js';
 @customElement('finance--invoice-generator-page-102022')
 export class InvoiceGeneratorPage extends CollabPageElement {
   constructor() {
