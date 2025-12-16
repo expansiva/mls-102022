@@ -34,7 +34,8 @@ export function createAgent(): IAgent {
         agentName,
         avatar_url: svg_agent,
         agentDescription: "Agent NewMiniApp, for decide instructions",
-        visibility: "private",
+        visibility: "public",
+        scope: ['l2_preview'],
         async beforePrompt(context: mls.msg.ExecutionContext): Promise<void> {
             return _beforePrompt(context);
         },
