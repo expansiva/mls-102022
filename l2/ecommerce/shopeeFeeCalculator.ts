@@ -203,6 +203,7 @@ ${history.map((entry, i) => html`
         return html`
 <div class="max-w-3xl mx-auto p-4 bg-white rounded-lg shadow">
 <h2 class="text-xl font-semibold mb-4 text-gray-800">Calculadora de Taxas - Shopee</h2>
+<hr>
 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
 <label class="block">
 <span class="text-sm text-gray-600">Preço de venda (R$)</span>
