@@ -1,8 +1,9 @@
-/// <mls shortName="monthlySales" projectId="102022" folder="reports" />
-import { CollabPageElement } from '/_100554_/l2/collabPageElement';
+/// <mls shortName="monthlySales" enhancement="_100554_enhancementLit" folder="reports" project="102022" folder="reports" />
+
+import { CollabPageElement } from '/_100554_/l2/collabPageElement.js';
 import { customElement } from 'lit/decorators.js';
 import { html } from 'lit';
-import { initState, setState, getState } from '/_100554_/l2/collabState';
+import { initState, setState, getState } from '/_100554_/l2/collabState.js';
 
 @customElement('reports--monthly-sales-102022')
 export class ReportsMonthlySales102022 extends CollabPageElement {
