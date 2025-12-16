@@ -1,4 +1,4 @@
-/// <mls shortName="monthlySales" enhancement="_100554_enhancementLit" folder="reports" project="102022" folder="reports" />
+/// <mls shortName="monthlySales" enhancement="_blank" project="102022" folder="reports" />
 
 import { CollabPageElement } from '/_100554_/l2/collabPageElement.js';
 import { customElement } from 'lit/decorators.js';
