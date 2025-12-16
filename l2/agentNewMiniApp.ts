@@ -1,8 +1,8 @@
 /// <mls shortName="agentNewMiniApp" project="102022" enhancement="_blank" />
 
-import { IAgent, svg_agent } from '/_100554_/l2/aiAgentBase';
-import { getPromptByHtml } from '/_100554_/l2/aiPrompts';
-import '/_100554_/l2/widgetQuestionsForClarification';
+import { IAgent, svg_agent } from '/_100554_/l2/aiAgentBase.js';
+import { getPromptByHtml } from '/_100554_/l2/aiPrompts.js';
+import '/_100554_/l2/widgetQuestionsForClarification.js';
 import {
     getNextInProgressStepByAgentName,
     notifyTaskChange,
@@ -11,7 +11,7 @@ import {
     getNextStepIdAvaliable,
     updateTaskTitle,
     getNextPendingStepByAgentName
-} from "/_100554_/l2/aiAgentHelper";
+} from "/_100554_/l2/aiAgentHelper.js";
 
 import {
     startNewAiTask,
@@ -20,7 +20,7 @@ import {
     addNewStep,
     startClarification,
     ClarificationValue
-} from "/_100554_/l2/aiAgentOrchestration";
+} from "/_100554_/l2/aiAgentOrchestration.js";
 
 const agentName = "agentNewMiniApp";
 const project = 102022; 
