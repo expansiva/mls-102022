@@ -1,8 +1,8 @@
-/// <mls shortName="passwordStrengthChecker" project="102022" enhancement="_blank" groupName="generalutilities" />
-import { CollabPageElement } from '/_100554_/l2/collabPageElement';
+/// <mls shortName="passwordStrengthChecker" project="102022" folder="generalutilities" enhancement="_100554_enhancementLit" groupName="generalutilities" />
+import { CollabPageElement } from '/_100554_/l2/collabPageElement.js';
 import { customElement } from 'lit/decorators.js';
 import { html } from 'lit';
-import { initState, setState, getState } from '/_100554_/l2/collabState';
+import { initState, setState, getState } from '/_100554_/l2/collabState.js';
 @customElement('generalutilities--password-strength-checker-102022')
 export class PasswordStrengthCheckerPage extends CollabPageElement {
   // Internal state (not using reactive decorators to keep compatibility with CollabPageElement patterns)
