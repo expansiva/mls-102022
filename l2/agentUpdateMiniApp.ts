@@ -1,27 +1,27 @@
 /// <mls shortName="agentUpdateMiniApp" project="102022" enhancement="_blank" />
 
-import { IAgent, svg_agent } from '/_100554_/l2/aiAgentBase';
-import { getPromptByHtml } from '/_100554_/l2/aiPrompts';
+import { IAgent, svg_agent } from '/_100554_/l2/aiAgentBase.js';
+import { getPromptByHtml } from '/_100554_/l2/aiPrompts.js';
 import { convertFileNameToTag } from '/_100554_/l2/utilsLit.js';
-import '/_100554_/l2/widgetQuestionsForClarification';
+import '/_100554_/l2/widgetQuestionsForClarification.js';
 import {
     getNextInProgressStepByAgentName,
     notifyTaskChange,
     updateStepStatus,
     updateTaskTitle,
     getNextPendingStepByAgentName
-} from "/_100554_/l2/aiAgentHelper";
+} from "/_100554_/l2/aiAgentHelper.js";
 
 import {
     startNewAiTask,
     startNewInteractionInAiTask,
     executeNextStep,
-} from "/_100554_/l2/aiAgentOrchestration";
-import { createNewFile } from '/_100554_/l2/pluginNewFileBase';
-import { ServiceSource100554 } from '/_100554_/l2/serviceSource';
-import { getState } from '/_100554_/l2/collabState';
-import { addModule } from '/_100554_/l2/projectAST';
-import { collabImport } from '/_100554_/l2/collabImport';
+} from "/_100554_/l2/aiAgentOrchestration.js";
+import { createNewFile } from '/_100554_/l2/pluginNewFileBase.js';
+import { ServiceSource100554 } from '/_100554_/l2/serviceSource.js';
+import { getState } from '/_100554_/l2/collabState.js';
+import { addModule } from '/_100554_/l2/projectAST.js';
+import { collabImport } from '/_100554_/l2/collabImport.js';
 
 const agentName = "agentUpdateMiniApp";
 const project = 102022;
@@ -107,7 +107,8 @@ const _afterPrompt = async (context: mls.msg.ExecutionContext): Promise<void> =>
 
     notifyTaskChange(context);
     await executeNextStep(context);
-        
+
+    debugger
     if (!result.isUpdate) {
         await createFile(result);
         await createOrUpdateProjectFile(result);
