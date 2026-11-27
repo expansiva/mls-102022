@@ -1,41 +1,7 @@
-/// <mls shortName="project" project="102022" enhancement="_blank" groupName="other" />
+/// <mls fileReference="_102022_/l2/project.ts" enhancement="_blank" />
 
-    export const projectConfig = {
-  "masterFrontEnd": {
-    "build": "_102020_build",
-    "start": "_102020_start",
-    "liveView": "_102020_collabAuraLiveView"
-  },
-  "masterBackEnd": {
-    "build": "_102021_buildServer",
-    "start": "_102021_start",
-    "serverView": "_102021_liveServer"
-  },
-  "modules": [
-    {
-      "name": "generalutilities",
-      "path": "generalutilities",
-      "auth": "admin"
-    },
-    {
-      "name": "reports",
-      "path": "reports",
-      "auth": "admin"
-    },
-    {
-      "name": "finance",
-      "path": "finance",
-      "auth": "admin"
-    },
-    {
-      "name": "ecommerce",
-      "path": "ecommerce",
-      "auth": "admin"
-    },
-    {
-      "name": "crm",
-      "path": "crm",
-      "auth": "admin"
-    }
-  ]
+export const projectConfig = {
+    modules: [
+        { name: 'miniApps', path: 'miniApps' },
+    ]
 }

@@ -1,0 +1,9 @@
+{
+  "projectSettings": {
+    "driver": "GitHub",
+    "url": "https://github.com/main/expansiva/mls-102022"
+  },
+  "workspaceDependencies": [
+    "102029"
+  ]
+}
